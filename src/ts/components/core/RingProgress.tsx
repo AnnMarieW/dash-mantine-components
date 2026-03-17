@@ -1,6 +1,7 @@
 import {
     MantineColor,
     RingProgress as MantineRingProgress,
+    RingProgressSection,
 } from '@mantine/core';
 import { BoxProps } from 'props/box';
 import { DashBaseProps } from 'props/dash';
@@ -8,11 +9,6 @@ import { StylesApiProps } from 'props/styles';
 import React from 'react';
 import { getLoadingState } from '../../utils/dash3';
 
-interface RingProgressSection {
-    value: number;
-    color: string;
-    tooltip?: React.ReactNode;
-}
 
 interface Props extends BoxProps, StylesApiProps, DashBaseProps {
     /** Label displayed in the center of the ring */
