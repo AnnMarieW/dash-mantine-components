@@ -47,6 +47,8 @@ interface Props extends DashBaseProps, BoxProps, StylesApiProps {
      *  `value` prop will be copied.
      */
     target_id?: string;
+    /** Props passed down to the `Button` component **/
+    buttonProps?: object;
 }
 /** CopyButton - Button component with copy to clipboard functionality */
 const CopyButton = ({
@@ -61,6 +63,7 @@ const CopyButton = ({
     disabled,
     n_clicks = 0,
     target_id,
+    buttonProps,
     ...others
 }: Props) => {
     const copyFnRef = useRef<(() => void) | null>(null);
@@ -99,6 +102,7 @@ const CopyButton = ({
                 copyFnRef.current = copy;
                 return (
                     <MantineButton
+                        {...buttonProps}
                         onClick={() => handleClick(copy)}
                         disabled={disabled}
                         color={copied ? copiedColor || color : color}

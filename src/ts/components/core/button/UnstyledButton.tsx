@@ -15,6 +15,8 @@ export interface Props
     n_clicks?: number;
     /** Indicates disabled state */
     disabled?: boolean;
+    /** Props passed down to the `Button` component **/
+    buttonProps?: object;
 }
 
 /** UnstyledButton */
@@ -24,6 +26,7 @@ const UnstyledButton = ({
     loading_state,
     disabled,
     n_clicks = 0,
+    buttonProps,
     ...others
 }: Props) => {
     const increment = () => {
@@ -36,6 +39,7 @@ const UnstyledButton = ({
 
     return (
         <MantineUnstyledButton
+            {...buttonProps}
             data-dash-is-loading={getLoadingState(loading_state) || undefined}
             onClick={increment}
             disabled={disabled}

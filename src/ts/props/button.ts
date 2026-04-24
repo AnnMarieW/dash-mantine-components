@@ -12,6 +12,8 @@ export interface __BaseButtonProps {
     children?: React.ReactNode;
     /** Replaces default close icon. If set, `iconSize` prop is ignored. */
     icon?: React.ReactNode;
+    /** props passed down to `Button` component **/
+    ButtonProps?: object;
 }
 
 export interface __CloseButtonProps extends __BaseButtonProps {
