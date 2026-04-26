@@ -26,14 +26,22 @@ interface Props
     rightSection?: React.ReactNode;
     /**
      * Controls whether the link is styled as active (default: `false`).
-     * - `exact`: Active if `pathname` matches `href` exactly.
-     * - `partial`: Active if `pathname` starts with `href` (for subpages).
+     *
+     * - `False`: never active, overrides all matching behavior.
+     * - `True`: always active, overrides all matching behavior.
+     * - `exact`: active when the current `pathname` matches `href` pathname exactly.
+     * - `partial`: active when the current `pathname` starts with `href` pathname.
+     * - `exact-with-search`: active when both `pathname` and query parameters
+     *   match `href`. Query parameters are compared after decoding and are
+     *   order-insensitive.
      */
-    active?: boolean | 'exact' | 'partial';
+    active?: boolean | 'exact' | 'partial' | 'exact-with-search';
     /** Key of `theme.colors` of any valid CSS color to control active styles, `theme.primaryColor` by default */
     color?: MantineColor;
     /** href */
     href?: string;
+    /** Href used only for active state matching. Overrides href for matching and allows non-navigable links to be styled as active. */
+    activeHref?: string,
     /** Target */
     target?: TargetProps;
     /** If set, label and description will not wrap to the next line, `false` by default */
@@ -56,10 +64,13 @@ interface Props
     refresh?: boolean;
 }
 
-/** NavLink */
+/**
+ * Navigation link with nested collapse support. Automatically styles as active based on URL matching.
+ */
 const NavLink = ({
     disabled,
     href,
+    activeHref,
     target,
     refresh,
     n_clicks = 0,
@@ -75,55 +86,88 @@ const NavLink = ({
 }: Props) => {
     const [linkActive, setLinkActive] = useState(false);
 
-    const pathnameToActive = (pathname) => {
-        setLinkActive(
-            active === true ||
-                (active === 'exact' && pathname === href) ||
-                (active === 'partial' &&
-                    (pathname.startsWith(href + '/') || pathname === href))
-        );
+    const normalizePath = (p?: string) =>
+        p && p.endsWith('/') && p !== '/' ? p.slice(0, -1) : p;
+
+    const normalizeSearch = (search: string) => {
+        const params = new URLSearchParams(search);
+        params.sort();
+        return params.toString();
     };
+
+    const matchesRoute = () => {
+        const matchHref = activeHref || href;
+        if (!matchHref || typeof active !== 'string') return false;
+
+        // Safely parse URL
+        let url: URL;
+        try {
+            url = new URL(matchHref, window.location.origin);
+        } catch (e) {
+            return false;
+        }
+
+        const currentPath = normalizePath(window.location.pathname);
+        const targetPath = normalizePath(url.pathname);
+
+        if (active === 'exact') {
+            return currentPath === targetPath;
+        }
+
+        if (active === 'partial') {
+            return (
+                currentPath === targetPath ||
+                currentPath.startsWith(targetPath + '/')
+            );
+        }
+
+        if (active === 'exact-with-search') {
+            return (
+                currentPath === targetPath &&
+                normalizeSearch(window.location.search) === normalizeSearch(url.search)
+            );
+        }
+
+        return false;
+    };
+
+    const updateActiveStyle = () => {
+        setLinkActive(typeof active === 'boolean' ? active : matchesRoute());
+    };
+
 
     useEffect(() => {
-        pathnameToActive(window.location.pathname);
+        updateActiveStyle();
 
         if (typeof active === 'string') {
-            History.onChange(() => {
-                pathnameToActive(window.location.pathname);
-            });
+            const off = History.onChange(updateActiveStyle);
+            return () => off && off();
         }
-    }, [active]);
+    }, [active, href, activeHref]);
 
-    const onChange = (state: boolean) => {
-        setProps({ opened: state });
-    };
+    const handleClick=(ev: MouseEvent<HTMLAnchorElement>) => {
+        if (disabled) return;
 
-    const increment = () => {
-        if (!disabled) {
-            setProps({
-                n_clicks: n_clicks + 1,
-            });
+        setProps({ n_clicks: n_clicks + 1 });
+
+        if (children !== undefined) {
+            setProps({ opened: !opened });
         }
-    };
+
+        if (href) {
+            onClick(ev, href, target, refresh);
+        }
+    }
 
     return (
         <MantineNavLink
             data-dash-is-loading={getLoadingState(loading_state) || undefined}
-            onClick={(ev: MouseEvent<HTMLAnchorElement>) => {
-                increment();
-                if (href) {
-                    onClick(ev, href, target, refresh);
-                }
-                if (children !== undefined) {
-                    setProps({ opened: !opened });
-                }
-            }}
             href={href}
             target={target}
-            onChange={onChange}
             disabled={disabled}
             active={linkActive}
             opened={opened}
+            onClick={handleClick}
             {...others}
         >
             {children}
