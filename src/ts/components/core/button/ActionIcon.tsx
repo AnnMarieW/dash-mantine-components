@@ -16,6 +16,7 @@ const ActionIcon = ({
     loading_state,
     disabled,
     n_clicks = 0,
+    buttonProps,
     ...others
 }: Props) => {
     const increment = () => {
@@ -28,6 +29,7 @@ const ActionIcon = ({
 
     return (
         <MantineActionIcon
+            {...buttonProps}
             data-dash-is-loading={getLoadingState(loading_state) || undefined}
             disabled={disabled}
             onClick={increment}

@@ -1,5 +1,11 @@
 # Change Log
 
+# Unreleased
+
+### Added
+
+- Added `buttonProps` to `Button`, `ActionIcon`, `UnstyledButton`, `CopyButton` components to allow passing props directly to the underlying button element. #716 by @AnnMarieW
+
 # 2.6.1
 
 ### Fixed

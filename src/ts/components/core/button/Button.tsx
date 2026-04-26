@@ -41,6 +41,8 @@ interface Props extends DashBaseProps, BoxProps, StylesApiProps {
     autoContrast?: boolean;
     /** An integer that represents the number of times that this element has been clicked on */
     n_clicks?: number;
+    /** Props passed down to the `Button` component **/
+    buttonProps?: object;
 }
 
 /** Button */
@@ -50,6 +52,7 @@ const Button = ({
     loading_state,
     disabled,
     n_clicks = 0,
+    buttonProps,
     ...others
 }: Props) => {
     const increment = () => {
@@ -62,6 +65,7 @@ const Button = ({
 
     return (
         <MantineButton
+            {...buttonProps}
             data-dash-is-loading={getLoadingState(loading_state) || undefined}
             onClick={increment}
             disabled={disabled}
