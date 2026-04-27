@@ -169,6 +169,7 @@ def navlink_query_app():
 
     dash.register_page("reports", path="/reports", layout=reports_layout)
     dash.register_page("settings", path="/settings", layout=html.Div("Settings"))
+    dash.register_page("path_template_page", path_template="/reports/<type>", layout=reports_layout)
 
     component = dmc.Box([
         dmc.NavLink(label="Home", id="home", href="/", active="exact"),
@@ -192,6 +193,12 @@ def navlink_query_app():
                     id="inventory",
                     href="/reports?type=Inventory",
                     active="exact-with-search",
+                ),
+                dmc.NavLink(
+                    label="Products",
+                    href="/reports/product A",
+                    active="exact",
+                    id="products"
                 ),
             ],
         ),
@@ -240,6 +247,14 @@ def test_navlink_activehref_and_search(dash_duo):
     assert is_active(dash_duo, "reports")
     assert not is_active(dash_duo, "sales")
     assert is_active(dash_duo, "inventory")
+
+    # Click Producs - match path variables
+    dash_duo.find_element("#products").click()
+
+    assert is_active(dash_duo, "reports")
+    assert not is_active(dash_duo, "sales")
+    assert not is_active(dash_duo, "inventory")
+    assert is_active(dash_duo, "products")
 
     # Click Settings (exact)
     dash_duo.find_element("#settings").click()

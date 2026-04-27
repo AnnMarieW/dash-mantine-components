@@ -86,13 +86,16 @@ const NavLink = ({
 }: Props) => {
     const [linkActive, setLinkActive] = useState(false);
 
-    const normalizePath = (p?: string) =>
-        p && p.endsWith('/') && p !== '/' ? p.slice(0, -1) : p;
+    const normalizePath = (p?: string) => {
+        if (!p) return p;
+        const decoded = decodeURIComponent(p);
+        return decoded.endsWith('/') && decoded !== '/' ? decoded.slice(0, -1) : decoded;
+    };
 
     const normalizeSearch = (search: string) => {
         const params = new URLSearchParams(search);
         params.sort();
-        return params.toString();
+        return decodeURIComponent(params.toString());
     };
 
     const matchesRoute = () => {
