@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added  `activeHref` for custom active-state matching independent of navigation, and introduce `exact-with-search` to match both pathname and query parameters. #718 by @AnnMarieW
 - Added `buttonProps` to `Button`, `ActionIcon`, `UnstyledButton`, `CopyButton` components to allow passing props directly to the underlying button element. #716 by @AnnMarieW
 
 # 2.6.1
