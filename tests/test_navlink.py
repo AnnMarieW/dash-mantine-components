@@ -159,3 +159,94 @@ def test_006_navlink(dash_duo):
 
 
 
+def navlink_query_app():
+    app = Dash(__name__, use_pages=True, pages_folder="")
+
+    dash.register_page("home", path="/", layout=html.Div("Home"))
+
+    def reports_layout(type=None, **kwargs):
+        return html.Div(f"{type} Report")
+
+    dash.register_page("reports", path="/reports", layout=reports_layout)
+    dash.register_page("settings", path="/settings", layout=html.Div("Settings"))
+
+    component = dmc.Box([
+        dmc.NavLink(label="Home", id="home", href="/", active="exact"),
+
+        dmc.NavLink(
+            label="Reports",
+            id="reports",
+            active="partial",
+            activeHref="/reports",
+            childrenOffset=28,
+            persistence=True,
+            children=[
+                dmc.NavLink(
+                    label="Sales",
+                    id="sales",
+                    href="/reports?type=Sales",
+                    active="exact-with-search",
+                ),
+                dmc.NavLink(
+                    label="Inventory",
+                    id="inventory",
+                    href="/reports?type=Inventory",
+                    active="exact-with-search",
+                ),
+            ],
+        ),
+
+        dmc.NavLink(label="Settings", id="settings", href="/settings", active="exact"),
+
+        dmc.Divider(mb="lg"),
+        dash.page_container
+    ])
+
+    app.layout = dmc.MantineProvider([component])
+    return app
+
+
+def is_active(dash_duo, id_):
+    el = dash_duo.find_element(f"#{id_}")
+    return el.get_attribute("data-active") == "true"
+
+
+def test_navlink_activehref_and_search(dash_duo):
+    app = navlink_query_app()
+    dash_duo.start_server(app)
+
+    dash_duo.wait_for_element("#home")
+
+    # Initial state: home active
+    assert is_active(dash_duo, "home")
+    assert not is_active(dash_duo, "reports")
+
+    # Toggles open/closed child links - no nav
+    dash_duo.find_element("#reports").click()
+    # Click Sales (exact-with-search)
+    dash_duo.find_element("#sales").click()
+
+    dash_duo.wait_for_text_to_equal("#_pages_content", "Sales Report")
+
+    assert is_active(dash_duo, "reports")      # via activeHref + partial
+    assert is_active(dash_duo, "sales")
+    assert not is_active(dash_duo, "inventory")
+    assert not is_active(dash_duo, "home")
+
+    # Click Inventory
+    dash_duo.find_element("#inventory").click()
+    dash_duo.wait_for_text_to_equal("#_pages_content", "Inventory Report")
+
+    assert is_active(dash_duo, "reports")
+    assert not is_active(dash_duo, "sales")
+    assert is_active(dash_duo, "inventory")
+
+    # Click Settings (exact)
+    dash_duo.find_element("#settings").click()
+    dash_duo.wait_for_text_to_equal("#_pages_content", "Settings")
+
+    assert is_active(dash_duo, "settings")
+    assert not is_active(dash_duo, "reports")
+
+    assert dash_duo.get_logs() == []
+
