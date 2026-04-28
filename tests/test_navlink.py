@@ -177,8 +177,7 @@ def navlink_query_app():
         dmc.NavLink(
             label="Reports",
             id="reports",
-            active="partial",
-            activeHref="/reports",
+            active="children",
             childrenOffset=28,
             persistence=True,
             children=[

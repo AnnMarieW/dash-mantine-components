@@ -6,10 +6,11 @@ import {
 import { BoxProps } from 'props/box';
 import { DashBaseProps, PersistenceProps } from 'props/dash';
 import { StylesApiProps } from 'props/styles';
-import React, { MouseEvent, useState, useEffect } from 'react';
-import { TargetProps, onClick } from '../../utils/anchor';
+import React, { MouseEvent, useState, useEffect, useContext, useRef } from 'react';
+import { TargetProps, onClick } from '../../../utils/anchor';
 import { History } from '@plotly/dash-component-plugins';
-import { setPersistence, getLoadingState } from '../../utils/dash3';
+import { setPersistence, getLoadingState } from '../../../utils/dash3';
+import NavLinkContext from './NavLinkContext';
 
 interface Props
     extends BoxProps,
@@ -34,14 +35,13 @@ interface Props
      * - `exact-with-search`: active when both `pathname` and query parameters
      *   match `href`. Query parameters are compared after decoding and are
      *   order-insensitive.
+     *   - `children`: active if any nested NavLink is active.
      */
-    active?: boolean | 'exact' | 'partial' | 'exact-with-search';
+    active?: boolean | 'exact' | 'partial' | 'exact-with-search' | 'children';
     /** Key of `theme.colors` of any valid CSS color to control active styles, `theme.primaryColor` by default */
     color?: MantineColor;
     /** href */
     href?: string;
-    /** Href used only for active state matching. Overrides href for matching and allows non-navigable links to be styled as active. */
-    activeHref?: string,
     /** Target */
     target?: TargetProps;
     /** If set, label and description will not wrap to the next line, `false` by default */
@@ -70,7 +70,6 @@ interface Props
 const NavLink = ({
     disabled,
     href,
-    activeHref,
     target,
     refresh,
     n_clicks = 0,
@@ -86,6 +85,16 @@ const NavLink = ({
 }: Props) => {
     const [linkActive, setLinkActive] = useState(false);
 
+    // Track child active states by id
+    const [childStates, setChildStates] = useState<Record<string, boolean>>({});
+
+    // Stable id for this instance
+    const idRef = useRef<string>(Math.random().toString(36).slice(2));
+    const internalId = others.id || idRef.current;
+
+    // Parent context
+    const parentContext = useContext(NavLinkContext);
+
     const normalizePath = (p?: string) => {
         if (!p) return p;
         const decoded = decodeURIComponent(p);
@@ -99,14 +108,13 @@ const NavLink = ({
     };
 
     const matchesRoute = () => {
-        const matchHref = activeHref || href;
-        if (!matchHref || typeof active !== 'string') return false;
 
-        // Safely parse URL
+        if (!href || typeof active !== 'string') return false;
+
         let url: URL;
         try {
-            url = new URL(matchHref, window.location.origin);
-        } catch (e) {
+            url = new URL(href, window.location.origin);
+        } catch {
             return false;
         }
 
@@ -134,10 +142,17 @@ const NavLink = ({
         return false;
     };
 
-    const updateActiveStyle = () => {
-        setLinkActive(typeof active === 'boolean' ? active : matchesRoute());
-    };
+    const anyChildActive = Object.values(childStates).some(Boolean);
 
+    const updateActiveStyle = () => {
+        if (active === 'children') {
+            setLinkActive(anyChildActive);
+        } else {
+            setLinkActive(
+                typeof active === 'boolean' ? active : matchesRoute()
+            );
+        }
+    };
 
     useEffect(() => {
         updateActiveStyle();
@@ -146,9 +161,38 @@ const NavLink = ({
             const off = History.onChange(updateActiveStyle);
             return () => off && off();
         }
-    }, [active, href, activeHref]);
+    }, [active, href,  anyChildActive]);
 
-    const handleClick=(ev: MouseEvent<HTMLAnchorElement>) => {
+    // Stable handler for children reporting active state
+    const onChildActive = React.useCallback(
+        (id: string, isActive: boolean) => {
+            setChildStates((prev) => {
+                if (prev[id] === isActive) return prev; // prevent churn
+                return { ...prev, [id]: isActive };
+            });
+        },
+        []
+    );
+
+    // Stable context value
+    const contextValue = React.useMemo(
+        () => ({ onChildActive }),
+        [onChildActive]
+    );
+
+    // Report this node's active state to parent
+    useEffect(() => {
+        parentContext?.onChildActive?.(internalId, linkActive);
+    }, [linkActive, parentContext]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            parentContext?.onChildActive?.(internalId, false);
+        };
+    }, [parentContext]);
+
+    const handleClick = (ev: MouseEvent<HTMLAnchorElement>) => {
         if (disabled) return;
 
         setProps({ n_clicks: n_clicks + 1 });
@@ -160,21 +204,25 @@ const NavLink = ({
         if (href) {
             onClick(ev, href, target, refresh);
         }
-    }
+    };
 
     return (
-        <MantineNavLink
-            data-dash-is-loading={getLoadingState(loading_state) || undefined}
-            href={href}
-            target={target}
-            disabled={disabled}
-            active={linkActive}
-            opened={opened}
-            onClick={handleClick}
-            {...others}
-        >
-            {children}
-        </MantineNavLink>
+        <NavLinkContext.Provider value={contextValue}>
+            <MantineNavLink
+                data-dash-is-loading={
+                    getLoadingState(loading_state) || undefined
+                }
+                href={href}
+                target={target}
+                disabled={disabled}
+                active={linkActive}
+                opened={opened}
+                onClick={handleClick}
+                {...others}
+            >
+                {children}
+            </MantineNavLink>
+        </NavLinkContext.Provider>
     );
 };
 
