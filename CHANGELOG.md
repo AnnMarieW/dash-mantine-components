@@ -4,7 +4,10 @@
 
 ### Added
 
-- Added  `activeHref` for custom active-state matching independent of navigation, and introduce `exact-with-search` to match both pathname and query parameters. #718 by @AnnMarieW
+- Added  two features to `NavLink` to improve route-based active state without requiring callbacks. #719 by @AnnMarieW
+  - `active="exact-with-search"` matches both pathname and query parameters.
+  - `active="children"` sets parent link to active if any child links are active.
+  
 - Added `buttonProps` to `Button`, `ActionIcon`, `UnstyledButton`, `CopyButton` components to allow passing props directly to the underlying button element. #716 by @AnnMarieW
 
 # 2.6.1

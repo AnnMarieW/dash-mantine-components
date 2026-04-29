@@ -64,6 +64,32 @@ interface Props
     refresh?: boolean;
 }
 
+function memoizeOneArg(fn) {
+  const cache = {}; // The "notebook" where results are saved
+  return function(arg) {
+    if (arg in cache) {
+      return cache[arg];
+    }
+    const result = fn(arg); // Compute the result
+    cache[arg] = result; // Store it for future use
+    return result;
+  };
+}
+
+
+
+const normalizePath = memoizeOneArg((p?: string) => {
+    if (!p) return p;
+    const decoded = decodeURIComponent(p);
+    return decoded.endsWith('/') && decoded !== '/' ? decoded.slice(0, -1) : decoded;
+});
+
+const normalizeSearch = memoizeOneArg((search: string) => {
+    const params = new URLSearchParams(search);
+    params.sort();
+    return decodeURIComponent(params.toString());
+});
+
 /**
  * Navigation link with nested collapse support. Automatically styles as active based on URL matching.
  */
@@ -94,18 +120,6 @@ const NavLink = ({
 
     // Parent context
     const parentContext = useContext(NavLinkContext);
-
-    const normalizePath = (p?: string) => {
-        if (!p) return p;
-        const decoded = decodeURIComponent(p);
-        return decoded.endsWith('/') && decoded !== '/' ? decoded.slice(0, -1) : decoded;
-    };
-
-    const normalizeSearch = (search: string) => {
-        const params = new URLSearchParams(search);
-        params.sort();
-        return decodeURIComponent(params.toString());
-    };
 
     const matchesRoute = () => {
 
@@ -142,7 +156,7 @@ const NavLink = ({
         return false;
     };
 
-    const anyChildActive = Object.values(childStates).some(Boolean);
+    const anyChildActive = (active === 'children') && Object.values(childStates).some(Boolean);
 
     const updateActiveStyle = () => {
         if (active === 'children') {
