@@ -39,7 +39,7 @@ import Mark from './components/core/Mark';
 import Modal from './components/core/modal/Modal';
 import ModalStack from './components/core/modal/ModalStack';
 import ManagedModal from './components/core/modal/ManagedModal';
-import NavLink from './components/core/NavLink';
+import NavLink from './components/core/navlink/NavLink';
 import NumberFormatter from './components/core/NumberFormatter';
 import Overlay from './components/core/Overlay';
 import Pagination from './components/core/Pagination';
