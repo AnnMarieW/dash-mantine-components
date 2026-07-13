@@ -1,5 +1,6 @@
 import {
     MantineColor,
+    RingProgressSection,
     RingProgress as MantineRingProgress,
 } from '@mantine/core';
 import { BoxProps } from 'props/box';
@@ -8,11 +9,6 @@ import { StylesApiProps } from 'props/styles';
 import React from 'react';
 import { getLoadingState } from '../../utils/dash3';
 
-interface RingProgressSection {
-    value: number;
-    color: string;
-    tooltip?: React.ReactNode;
-}
 
 interface Props extends BoxProps, StylesApiProps, DashBaseProps {
     /** Label displayed in the center of the ring */
@@ -24,7 +20,7 @@ interface Props extends BoxProps, StylesApiProps, DashBaseProps {
     /** Sets whether the edges of the progress circle are rounded */
     roundCaps?: boolean;
     /** Ring sections */
-    sections: RingProgressSection[];
+    sections: any;
     /** Color of the root section, key of theme.colors or CSS color value */
     rootColor?: MantineColor;
 }
