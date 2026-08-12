@@ -1,6 +1,5 @@
 import {
     MantineColor,
-    RingProgressSection,
     RingProgress as MantineRingProgress,
 } from '@mantine/core';
 import { BoxProps } from 'props/box';
