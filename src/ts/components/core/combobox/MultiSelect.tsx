@@ -11,7 +11,7 @@ import { __ClearButtonProps } from 'props/button';
 import { __BaseInputProps } from 'props/input';
 import { ScrollAreaProps } from 'props/scrollarea';
 import { StylesApiProps } from 'props/styles';
-import React, { useState } from 'react';
+import React, {useRef, useState} from 'react';
 import { filterSelected } from '../../../utils/combobox';
 import { setPersistence, getLoadingState } from '../../../utils/dash3';
 import { parseFuncProps } from '../../../utils/prop-functions';
@@ -79,7 +79,8 @@ const MultiSelect = ({
     }
     const [selected, setSelected] = useState(value ?? []);
     const [options, setOptions] = useState(data ?? []);
-    const { ref, focused } = useFocusWithin();
+    const inputRef = useRef(null);
+    const isInputFocused = () => document.activeElement === inputRef.current;
 
     const debounceValue = typeof debounce === 'number' ? debounce : 0;
     const [debounced] = useDebouncedValue(selected, debounceValue);
@@ -91,7 +92,7 @@ const MultiSelect = ({
 
         // Update the value prop if an item is removed by clicking the "x" on the pill,
         // even if the input is not focused at the time
-        if (!focused && debounce === true) {
+        if (!isInputFocused() && debounce === true) {
             setProps({ value: debounced });
         }
     }, [debounced]);
@@ -134,20 +135,19 @@ const MultiSelect = ({
     };
 
     return (
-        <div ref={ref}>
-            <MantineMultiSelect
-                data-dash-is-loading={
-                    getLoadingState(loading_state) || undefined
-                }
-                {...parseFuncProps('Select', others)}
-                onKeyDown={handleKeyDown}
-                onBlur={handleBlur}
-                data={options}
-                onChange={setSelected}
-                value={selected}
-                onSearchChange={handleSearchChange}
-            />
-        </div>
+        <MantineMultiSelect
+            ref={inputRef}
+            data-dash-is-loading={
+                getLoadingState(loading_state) || undefined
+            }
+            {...parseFuncProps('Select', others)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            data={options}
+            onChange={setSelected}
+            value={selected}
+            onSearchChange={handleSearchChange}
+        />
     );
 };
 
