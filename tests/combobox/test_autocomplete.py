@@ -157,7 +157,7 @@ def test_002au_autocomplete_debounce(dash_duo):
     dash_duo.wait_for_text_to_equal("#out-2000", "gh")
 
     # debounce=True with clearable
-    dash_duo.wait_for_text_to_equal("#out-debounc002au_autocomplete-clearable", "g")
+    dash_duo.wait_for_text_to_equal("#out-debounce-clearable", "g")
 
     clear_button = dash_duo.find_element(".mantine-InputClearButton-root")
     clear_button.click()
