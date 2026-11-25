@@ -17,6 +17,7 @@ to opt in to React 19's Activity behavior. [PR 770](https://github.com/snehilvj/
 ### Fixed
 
 - Fix `CardSection` styling for horizontal and vertical `Card` layouts. [PR 766](https://github.com/snehilvj/dash-mantine-components/pull/766) by @AnnMarieW
+- Fix the `theme` prop type  [PR 779](https://github.com/snehilvj/dash-mantine-components/pull/779) by @AnnMarieW
 
 
 # 3.0.0
